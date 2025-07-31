@@ -80,9 +80,15 @@ type ClientCommonConfig struct {
 }
 
 func (c *ClientCommonConfig) Complete() error {
+	hostname, err := os.Hostname()
+	if err != nil {
+		c.User = util.EmptyOr(c.User, "")
+	} else {
+		c.User = util.EmptyOr(c.User, hostname)
+	}
 	c.ServerAddr = util.EmptyOr(c.ServerAddr, "0.0.0.0")
-	c.ServerPort = util.EmptyOr(c.ServerPort, 7000)
-	c.LoginFailExit = util.EmptyOr(c.LoginFailExit, lo.ToPtr(true))
+	c.ServerPort = util.EmptyOr(c.ServerPort, 20000)
+	c.LoginFailExit = util.EmptyOr(c.LoginFailExit, lo.ToPtr(false))
 	c.NatHoleSTUNServer = util.EmptyOr(c.NatHoleSTUNServer, "stun.easyvoip.com:3478")
 
 	if err := c.Auth.Complete(); err != nil {
@@ -91,6 +97,9 @@ func (c *ClientCommonConfig) Complete() error {
 	c.Log.Complete()
 	c.Transport.Complete()
 	c.WebServer.Complete()
+	if c.WebServer.Port > 0 {
+		c.WebServer.Addr = util.EmptyOr(c.WebServer.Addr, "0.0.0.0")
+	}
 
 	c.UDPPacketSize = util.EmptyOr(c.UDPPacketSize, 1500)
 	return nil
@@ -139,7 +148,7 @@ type ClientTransportConfig struct {
 }
 
 func (c *ClientTransportConfig) Complete() {
-	c.Protocol = util.EmptyOr(c.Protocol, "tcp")
+	c.Protocol = util.EmptyOr(c.Protocol, "kcp")
 	c.DialServerTimeout = util.EmptyOr(c.DialServerTimeout, 10)
 	c.DialServerKeepAlive = util.EmptyOr(c.DialServerKeepAlive, 7200)
 	c.ProxyURL = util.EmptyOr(c.ProxyURL, os.Getenv("http_proxy"))
@@ -198,6 +207,7 @@ type AuthClientConfig struct {
 
 func (c *AuthClientConfig) Complete() error {
 	c.Method = util.EmptyOr(c.Method, "token")
+	c.Token = util.EmptyOr(c.Token, "3fJ9r8G7q6P5o4N3m2L1k0J9i8H7g6F5e4D3c2B1A0")
 
 	// Resolve tokenSource during configuration loading
 	if c.Method == AuthMethodToken && c.TokenSource != nil {

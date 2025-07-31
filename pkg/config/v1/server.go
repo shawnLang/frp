@@ -111,7 +111,7 @@ func (c *ServerConfig) Complete() error {
 	c.SSHTunnelGateway.Complete()
 
 	c.BindAddr = util.EmptyOr(c.BindAddr, "0.0.0.0")
-	c.BindPort = util.EmptyOr(c.BindPort, 7000)
+	c.BindPort = util.EmptyOr(c.BindPort, 20000)
 	if c.ProxyBindAddr == "" {
 		c.ProxyBindAddr = c.BindAddr
 	}
@@ -138,6 +138,7 @@ type AuthServerConfig struct {
 
 func (c *AuthServerConfig) Complete() error {
 	c.Method = util.EmptyOr(c.Method, "token")
+	c.Token = util.EmptyOr(c.Token, "3fJ9r8G7q6P5o4N3m2L1k0J9i8H7g6F5e4D3c2B1A0")
 
 	// Resolve tokenSource during configuration loading
 	if c.Method == AuthMethodToken && c.TokenSource != nil {

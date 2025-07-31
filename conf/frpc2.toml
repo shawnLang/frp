@@ -1,0 +1,21 @@
+# user = "frpc2"
+webServer.port = 7401
+dnsServer = "223.5.5.5"
+
+[[proxies]]
+name = "ssh"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 22
+remotePort = 0
+transport.useEncryption = true
+transport.useCompression = true
+
+[[proxies]]
+name = "ui"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 7401
+remotePort = 0
+transport.useEncryption = true
+transport.useCompression = true

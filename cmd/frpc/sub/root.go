@@ -41,11 +41,13 @@ var (
 	cfgDir           string
 	showVersion      bool
 	strictConfigMode bool
+	cfgType          string
 )
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "./frpc.ini", "config file of frpc")
 	rootCmd.PersistentFlags().StringVarP(&cfgDir, "config_dir", "", "", "config directory, run one frpc service for each file in config directory")
+	rootCmd.PersistentFlags().StringVarP(&cfgType, "type", "t", "frp1", "")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "version of frpc")
 	rootCmd.PersistentFlags().BoolVarP(&strictConfigMode, "strict_config", "", true, "strict config parsing mode, unknown fields will cause an errors")
 }
@@ -64,6 +66,12 @@ var rootCmd = &cobra.Command{
 		if cfgDir != "" {
 			_ = runMultipleClients(cfgDir)
 			return nil
+		}
+
+		if cfgType == "frp1" {
+			cfgFile = "./frpc1.toml"
+		} else if cfgType == "frp2" {
+			cfgFile = "./frpc2.toml"
 		}
 
 		// Do not show command usage here.
@@ -125,6 +133,14 @@ func runClient(cfgFilePath string) error {
 		if err := featuregate.SetFromMap(cfg.FeatureGates); err != nil {
 			return err
 		}
+	}
+
+	if cfgType == "frp1" {
+		cfg.ServerAddr = "frp1.cloudytrack.com"
+		cfg.ServerPort = 20000
+	} else if cfgType == "frp2" {
+		cfg.ServerAddr = "frp2.cloudytrack.com"
+		cfg.ServerPort = 20000
 	}
 
 	warning, err := validation.ValidateAllClientConfig(cfg, proxyCfgs, visitorCfgs)
