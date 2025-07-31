@@ -38,18 +38,18 @@ chown root:root /tmp/$frpc_path_name/frpc
 chmod +x /tmp/$frpc_path_name/frpc
 mv -f /tmp/$frpc_path_name/frpc /bin/
 
-if [ -e "/bin/frpc.toml" ]; then
-    echo "/bin/frpc.toml文件存在"
-else
-    echo "/bin/frpc.toml文件不存在"
-    mv -f /tmp/$frpc_path_name/frpc.toml /bin/
-fi
-
 if [ -e "/bin/frpc1.toml" ]; then
     echo "/bin/frpc1.toml文件存在"
 else
     echo "/bin/frpc1.toml文件不存在"
     mv -f /tmp/$frpc_path_name/frpc1.toml /bin/
+fi
+
+if [ -e "/bin/frpc2.toml" ]; then
+    echo "/bin/frpc2.toml文件存在"
+else
+    echo "/bin/frpc2.toml文件不存在"
+    mv -f /tmp/$frpc_path_name/frpc2.toml /bin/
 fi
 
 rm -rf /tmp/$frpc_file_name
@@ -59,32 +59,18 @@ rm -rf /tmp/$frpc_path_name
 os=`cat /etc/os-release | grep ^ID= | awk -F= '{print $2}'`
 echo "设备系统类型: $os"
 if [ "$os" == "ubuntu" ]; then
-    service_file="/lib/systemd/system/frpc.service"
     service_file1="/lib/systemd/system/frpc1.service"
+    service_file2="/lib/systemd/system/frpc2.service"
 elif [ "$os" == "\"centos\"" ]; then
-    service_file="/usr/lib/systemd/system/frpc.service"
     service_file1="/usr/lib/systemd/system/frpc1.service"
+    service_file2="/usr/lib/systemd/system/frpc2.service"
 elif [ "$os" == "\"kylin\"" ]; then
-    service_file="/lib/systemd/system/frpc.service"
     service_file1="/lib/systemd/system/frpc1.service"
+    service_file2="/lib/systemd/system/frpc2.service"
 else
     echo "未知系统类型: $os"
     exit
 fi
-
-echo "[Unit]
-Description = frpc server
-After = network.target syslog.target
-Wants = network.target
-
-[Service]
-Type=simple
-WorkingDirectory=/bin
-ExecStart = /bin/frpc -t frp
-
-[Install]
-WantedBy=multi-user.target
-" > $service_file
 
 echo "[Unit]
 Description = frpc1 server
@@ -100,16 +86,30 @@ ExecStart = /bin/frpc -t frp1
 WantedBy=multi-user.target
 " > $service_file1
 
-systemctl daemon-reload
+echo "[Unit]
+Description = frpc2 server
+After = network.target syslog.target
+Wants = network.target
 
-systemctl enable frpc
-systemctl stop frpc
-systemctl start frpc
-systemctl status frpc
+[Service]
+Type=simple
+WorkingDirectory=/bin
+ExecStart = /bin/frpc -t frp2
+
+[Install]
+WantedBy=multi-user.target
+" > $service_file2
+
+systemctl daemon-reload
 
 systemctl enable frpc1
 systemctl stop frpc1
 systemctl start frpc1
 systemctl status frpc1
+
+systemctl enable frpc2
+systemctl stop frpc2
+systemctl start frpc2
+systemctl status frpc2
 
 echo "ok"
